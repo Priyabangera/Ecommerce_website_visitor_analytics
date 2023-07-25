@@ -1,0 +1,284 @@
+<html>
+    <head>
+        <title>Analytics Dashboard</title>
+        <!--bootstrap CDN-->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    </head>
+    <body onload="loadDashboard()">
+    <!--Main Div start-->
+        <div class="container">
+            <br>
+            <h2>Analytics  Dashboard</h2>
+            <br>
+              <!---Data  points - card start--->
+              <div class="row">
+               <div class="col-lg-3 col-sm-12">
+                   <!-- card start-->
+                   <div class="card" style="background-color:#b3b3ff;">
+                        <div class="card-body">
+                            <h5 class="card-title">Today's Visitors</h5>
+                            <h2 class="card-titles" id="todaysVisitors">6</h2>
+                        </div>
+                   </div>
+                 <!-- card start-->
+                </div>
+                <div class="col-lg-3 col-sm-12">
+
+                    <!--Card Start-->
+                    <div class="card" style="background-color: #319c4c;">
+                        <div class="card-body">
+                            <h5 class="card-title" style="color: white">Add Clicks</h5>
+                            <h2 class="card-title" style="color: white;" id="todayAdClicks">4</h2>
+                        </div>
+                    </div>
+                    <!--Card End-->
+    
+                </div>
+                <div class="col-lg-3 col-sm-12">
+    
+                    <!--Card Start-->
+                    <div class="card" style="background-color: #352f66;">
+                        <div class="card-body">
+                            <h5 class="card-title" style="color: white;">Product Page</h5>
+                            <h2 class="card-title" style="color: white;"></h2>
+                        </div>
+                    </div>
+                    <!--Card End-->
+    
+                </div>
+                <div class="col-lg-3 col-sm-12">
+    
+                    <!--Card Start-->
+                    <div class="card" style="background-color: #992341;">
+                        <div class="card-body">
+                            <h5 class="card-title" style="color: white;">No. Of Enquiries</h5>
+                            <h2 class="card-title" style="color: white;" id="todayContactCount">2</h2>
+                        </div>
+                    </div>
+                    <!--Card End-->
+    
+                </div>
+            </div>
+            <!--Data Points - Card End-->
+    <!--Table & Graph Start-->
+    <br><br><div class="row">
+        <div class="col-lg-6 col-sm12">
+
+            <!--Table Start-->
+            <table class="table">
+                <thead>
+                    <tr class="table-dark">
+                        <td>Sl</td>
+                        <td>Name</td>
+                        <td>Email / Mobile</td>
+                        <td>Comments</td>
+                    </tr>
+                </thead>
+                <tbody id="contactTable">
+                    <tr>
+                        <td>1</td>
+                        <td>Abhijna</td>
+                        <td>abhi@gmail.com/9473254877</td>
+                        <td>Price for 50 Smart Phones</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>sushrutha</td>
+                        <td>sush@gmail.com/9658475811</td>
+                        <td>Looking for 10 watch</td>
+                    </tr>
+                </tbody>
+            </table>
+            <!--Table End-->
+
+        </div>
+        <div class="col-lg-6 col-sm12">
+
+            <div>
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+    
+    <!--Table & Graph End-->
+            <br><br>
+        </div>
+    <!---Main div End-->
+      
+<script>
+ 
+  
+
+       function loadDashboard()
+       {
+        /* AJAX code recieve data from server goes here */ 
+        var xhttpVisitors= new XMLHttpRequest()  
+        xhttpVisitors.onreadystatechange=function()
+                     {
+                         if(this.readyState == 4 && this.status == 200)
+                         {
+                             var jsonData=JSON.parse(this.responseText)  
+                             var todayCount=jsonData[0].count
+                             
+                             document.getElementById('todaysVisitors').innerHTML=
+                             todayCount
+                         }
+                      }
+                      xhttpVisitors.open('GET','http://localhost:5000/today-visitors',true)
+                      xhttpVisitors.send()
+                    /* end ajax code - today visitors*/
+                    /* ajax for add click */
+                    /* AJAX Ad Click - Start */
+        var xhttpAdClick = new XMLHttpRequest()
+        xhttpAdClick.onreadystatechange = function()
+        {
+                    if(this.readyState == 4 && this.status == 200)
+                    {
+                        var jsonData = JSON.parse(this.responseText)
+                        var totalClicks = jsonData[0].total_clicks
+
+                        document.getElementById('todayAdClicks').innerHTML = totalClicks
+                    }   
+        }
+        xhttpAdClick.open('GET','http://localhost:5000/ad-click-data', true)
+        xhttpAdClick.send()  
+                /* AJAX Ad Click - End */
+      /* AJAX Code Contact Count Start */
+      var xhttpContact = new XMLHttpRequest()
+                xhttpContact.onreadystatechange = function()
+                {
+                    if(this.readyState == 4 && this.status == 200)
+                    {
+                        var jsonData = JSON.parse(this.responseText)
+                        var totalContactCount = jsonData[0].contact_count_today
+
+                        document.getElementById('todayContactCount').innerHTML = totalContactCount
+                    }   
+                }
+                xhttpContact.open('GET','http://localhost:5000/contacts-count', true)
+                xhttpContact.send()  
+                /* AJAX Code Contact Count End */
+                /* AJAX Code Contact Table Start */
+                var xhttpContactTable = new XMLHttpRequest()
+                xhttpContactTable.onreadystatechange = function()
+                {
+                    if(this.readyState == 4 && this.status == 200)
+                    {
+                        var jsonData = JSON.parse(this.responseText)
+                        var jsonDataLength = jsonData.length
+                        var htmlData = ''
+                        var sl = 0
+
+                        for(var i = 0;i < jsonDataLength;i++)
+                        {   
+                            sl++
+                            htmlData+= '<tr>'
+                            htmlData+= '<td>'+sl+'</td>'
+                            htmlData+= '<td>'+jsonData[i].name+'</td>'
+                            htmlData+= '<td>'+jsonData[i].email+' / '+jsonData[i].mobile+'</td>'
+                            htmlData+= '<td>'+jsonData[i].comments+'</td>'
+                            htmlData+= '</tr>'
+                        }
+
+                        document.getElementById('contactTable').innerHTML = htmlData
+                    }   
+                }
+                xhttpContactTable.open('GET','http://localhost:5000/contact-list-table', true)
+                xhttpContactTable.send()  
+                /* AJAX Code Conatct Table End */
+                /* AJAX Code Bar Chart Start */
+                var xhttpBarChart = new XMLHttpRequest()
+                xhttpBarChart.onreadystatechange = function()
+                {
+                    if(this.readyState == 4 && this.status == 200)
+                    {
+                        var jsonData = JSON.parse(this.responseText)
+                        var jsonDataLength = jsonData.length
+                        var datarr = []
+
+                        for(var i = 0;i < jsonDataLength;i++)
+                        {
+                            if(jsonData[i].month!= 'None')
+                            {
+                                datarr.push(jsonData[i].month)
+                            }
+                            else
+                            {
+                                datarr.push(0)
+                            }
+                        }
+
+                        // Pass The Graph here
+                        const labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                        const data = {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Trend of Visitors over the month',
+                            data: datarr,
+                            backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(255, 159, 64, 0.2)',
+                            'rgba(255, 205, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(201, 203, 207, 0.2)'
+                            ],
+                            borderColor: [
+                            'rgb(255, 99, 132)',
+                            'rgb(255, 159, 64)',
+                            'rgb(255, 205, 86)',
+                            'rgb(75, 192, 192)',
+                            'rgb(54, 162, 235)',
+                            'rgb(153, 102, 255)',
+                            'rgb(201, 203, 207)'
+                            ],
+                            borderWidth: 1
+                        }]
+                        };
+
+                        const config = {
+                        type: 'bar',
+                        data: data,
+                        options: {
+                            scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                            }
+                        },
+                        };
+
+                        const myChart = new Chart(
+                            document.getElementById('myChart'),
+                            config
+                        );
+                        // Graph End Here
+
+                    }   
+                }
+                xhttpBarChart.open('GET','http://localhost:5000/bar-graph-data', true)
+                xhttpBarChart.send()  
+                /* AJAX Code Bar Chart End */
+                /* Ad Click Function */
+           function adClick()
+           {    
+                /* AJAX Ad Click Start */
+                var xhttpAdClick = new XMLHttpRequest()
+                xhttpAdClick.onreadystatechange = function()
+                {
+                    if(this.readyState == 4 && this.status == 200)
+                    {
+                        console.log(this.responseText)
+                    }   
+                }
+                xhttpAdClick.open('GET','http://localhost:5000/ad-click', true)
+                xhttpAdClick.send()  
+                /* AJAX Ad Click End */
+            }
+
+       } 
+         </script>
+    </div>
+    </body>
+</html>
